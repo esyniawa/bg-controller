@@ -6,13 +6,13 @@ simID = int(sys.argv[1])
 np.random.seed(simID)
 
 import ANNarchy as ann
-ann.setup(method='rk4')
+ann.setup(method='midpoint', num_threads=2)
 
 # import from scripts
 from network.model import *
 from monitoring import PopMonitor, ConMonitor
 
-learning_time = 10. * 1000.  # 10 s
+learning_time = 10. * 1000.  # 50 s
 test_time = 2000.
 
 # save results in...
@@ -33,10 +33,13 @@ rates = PopMonitor([reservoir, target_pop, output_pop, output_pop, output_pop, o
                    variables=['r', 'r', 'r', 'r_mean', 'p', 'p_mean', 'm', 'noise'],
                    sampling_rate=1.0)
 
-rates.start()
+weights = PopMonitor([res_output_proj], variables=['w'], sampling_rate=20.0)
 
-con_monitor = ConMonitor([res_output_proj])
-con_monitor.extract_weights()
+rates.start()
+weights.start()
+
+# con_monitor = ConMonitor([res_output_proj])
+# con_monitor.extract_weights()
 
 # init
 ann.disable_learning()
@@ -54,7 +57,10 @@ ann.simulate(test_time)
 
 # save monitors
 rates.stop()
-monitors = rates.save(results_folder)
+rates.save(results_folder)
 
-con_monitor.extract_weights()
-con_monitor.save_cons(results_folder)
+weights.stop()
+weights.save(results_folder)
+
+# con_monitor.extract_weights()
+# con_monitor.save_cons(results_folder)

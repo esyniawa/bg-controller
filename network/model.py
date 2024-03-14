@@ -18,10 +18,11 @@ target_pop = ann.Population(geometry=N_neurons_output, neuron=test_target_neuron
 reservoir = ann.Population(geometry=N_neurons_reservoir, neuron=reservoir_model, name='reservoir_pop')
 recurrent_res = ann.Projection(pre=reservoir, post=reservoir, target='rec')
 recurrent_res.connect_fixed_probability(probability=connect_prop,
-                                        weights=ann.Normal(0, 1/(connect_prop * N_neurons_reservoir)))
+                                        weights=ann.Normal(0, 1/(connect_prop * N_neurons_reservoir)),
+                                        allow_self_connections=True)
 
 # output population
-output_pop = ann.Population(geometry=N_neurons_output, neuron=output_model_corr_noise, name='output_pop')
+output_pop = ann.Population(geometry=N_neurons_output, neuron=output_model, name='output_pop')
 
 # reservoir -> output
 res_output_proj = ann.Projection(pre=reservoir, post=output_pop,

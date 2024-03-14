@@ -5,11 +5,11 @@ reservoir_model = ann.Neuron(
     parameters="""
     tau = 50.0 : population
     phi = 0.05 : population
-    l = 1.5 : population
+    chaos_factor = 1.5 : population
     """,
     equations="""
     noise = phi * Uniform(-1.0, 1.0)
-    x += dt*(l * sum(rec) + sum(fb) + sum(in) - x)/tau
+    x += dt*(chaos_factor * sum(rec) + sum(fb) + sum(in) - x)/tau
     r = tanh(x) + noise
     """
 )
@@ -49,7 +49,7 @@ output_model_corr_noise = ann.Neuron(
     parameters="""
     alpha_r = 0.8 : population
     alpha_p = 0.8 : population
-    alpha_noise = 0.6 : population
+    alpha_noise = 0.8 : population
     baseline = 0.0 : population
     phi = 0.5 : population
     test = 0 : population, bool
@@ -92,22 +92,22 @@ target_neuron = ann.Neuron(
 
 test_target_neuron = ann.Neuron(
     parameters="""
-    w1 = 0.5 : population
-    w2 = 0.0 : population
-    w3 = 0.35 : population
+    w1 = 0.7 : population
+    w2 = 0.05 : population
+    w3 = 0.4 : population
 
     f1 = 1/1000 : population
-    f2 = 1/20 : population
+    f2 = 1/200 : population
     f3 = 1/500 : population
     """,
     equations="""
-    r = w1 * sin(2 * pi * f1 * t) + w2 * sin(2 * pi * f2 * t) + w3 * sin(2 * pi * f3 * t) 
+    r = w1 * sin(2 * pi * f1 * t) + w2 * sin(2 * pi * f2 * t) + w3 * sin(2 * pi * f3 * t)
     """
 )
 
 EH_learning_rule = ann.Synapse(
     parameters="""
-    eta_init = 0.005 
+    eta_init = 0.0005
     decay = 10000.
     """,
     equations="""
