@@ -1,9 +1,9 @@
 import os
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
 
 from pybads.bads import BADS
+from contextlib import contextmanager
 
 simID = int(sys.argv[1])
 np.random.seed(simID)
@@ -14,6 +14,18 @@ ann.setup(method='rk4', num_threads=1)
 # import from scripts
 from network.model import *
 from monitoring import PopMonitor
+
+
+# supress standard output
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 
 # For resetting weights
@@ -40,7 +52,7 @@ def fit_reservoir(folder: str,
                   exploratory_noise=0.5,
                   chaos_res=1.5,
                   learning_time=20. * 1000.,  # 5 s
-                  test_time=3. * 1000.,
+                  test_time=5. * 1000.,
                   do_test=True) -> None:
 
     my_params = (init_eta, exploratory_noise, chaos_res)
@@ -152,4 +164,6 @@ def fit_reservoir(folder: str,
 if __name__ == '__main__':
 
     results_folder = f"results/fit_{simID}/"
-    fit_reservoir(folder=results_folder)
+
+    with suppress_stdout():
+        fit_reservoir(folder=results_folder)

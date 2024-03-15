@@ -8,12 +8,14 @@ np.random.seed(simID)
 import ANNarchy as ann
 ann.setup(method='rk4', num_threads=1)
 
+import matplotlib.pyplot as plt
+
 # import from scripts
 from network.model import *
 from monitoring import PopMonitor, ConMonitor
 
 learning_time = 20. * 1000.  # 50 s
-test_time = 20. * 1000.
+test_time = 5. * 1000.
 
 # save results in...
 results_folder = f'results/run_{simID}/'
@@ -28,10 +30,10 @@ ann.compile(compile_folder + f'run_{simID}')
 
 
 # init pop monitor
-rates = PopMonitor([reservoir, target_pop, output_pop, output_pop, output_pop, output_pop,
-                    output_pop, output_pop],
-                   variables=['r', 'r', 'r', 'r_mean', 'p', 'p_mean', 'm', 'noise'],
-                   sampling_rate=1.0)
+mon_populations = [reservoir, target_pop, output_pop, output_pop, output_pop, output_pop, output_pop, output_pop]
+mon_variables = ['r', 'r', 'r', 'r_mean', 'p', 'p_mean', 'm', 'noise']
+
+rates = PopMonitor(populations=mon_populations, variables=mon_variables, sampling_rate=1.0)
 
 weights = PopMonitor([res_output_proj], variables=['w'], sampling_rate=20.0)
 
@@ -54,8 +56,21 @@ output_pop.test = 1
 ann.simulate(test_time)
 
 # save monitors
-rates.stop()
 rates.save(results_folder)
+rates.stop()
 
-weights.stop()
 weights.save(results_folder)
+weights.stop()
+
+fig, ax = plt.subplots(figsize=(20, 14))
+monitors = rates.load(results_folder)
+
+res_output = monitors['r_output_pop']
+res_target = monitors['r_target_pop']
+res_output_noiseless = monitors['r_output_pop'][:int(learning_time)] - monitors['noise_output_pop'][:int(learning_time)]
+ax.plot(res_output, c="b", alpha=0.2)
+ax.plot(res_output_noiseless, c="b")
+ax.plot(res_target, c="r")
+
+plt.savefig(results_folder + "learned_trajectory.pdf")
+plt.close(fig)
