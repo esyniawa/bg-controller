@@ -99,6 +99,8 @@ test_target_neuron = ann.Neuron(
     f1 = 1/1000 : population
     f2 = 1/200 : population
     f3 = 1/500 : population
+    
+    phase_shift = -20.
     """,
     equations="""
     r = w1 * sin(2 * pi * f1 * t) + w2 * sin(2 * pi * f2 * t) + w3 * sin(2 * pi * f3 * t)

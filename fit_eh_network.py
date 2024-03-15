@@ -39,8 +39,8 @@ def fit_reservoir(folder: str,
                   init_eta=0.0005,
                   exploratory_noise=0.5,
                   chaos_res=1.5,
-                  learning_time=10. * 1000.,  # 5 s
-                  test_time=2000.,
+                  learning_time=20. * 1000.,  # 5 s
+                  test_time=3. * 1000.,
                   do_test=True) -> None:
 
     my_params = (init_eta, exploratory_noise, chaos_res)
@@ -90,8 +90,7 @@ def fit_reservoir(folder: str,
         ann.simulate(test_time)
 
         tracking = performance.get()
-        error = (np.log(np.mean(-tracking['p_output_pop'])) + np.log(np.std(tracking['p_output_pop'])) +
-                 np.log(np.amax(-tracking['p_output_pop'])))
+        error = np.log(np.mean(-tracking['p_output_pop'])) + np.log(np.amax(-tracking['p_output_pop']))
 
         performance.stop()
         ann.reset(monitors=True)
@@ -152,5 +151,5 @@ def fit_reservoir(folder: str,
 
 if __name__ == '__main__':
 
-    results_folder = f"results/run_{simID}/"
+    results_folder = f"results/fit_{simID}/"
     fit_reservoir(folder=results_folder)

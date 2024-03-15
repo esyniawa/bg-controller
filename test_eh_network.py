@@ -6,14 +6,14 @@ simID = int(sys.argv[1])
 np.random.seed(simID)
 
 import ANNarchy as ann
-ann.setup(method='midpoint', num_threads=2)
+ann.setup(method='rk4', num_threads=1)
 
 # import from scripts
 from network.model import *
 from monitoring import PopMonitor, ConMonitor
 
-learning_time = 10. * 1000.  # 50 s
-test_time = 2000.
+learning_time = 20. * 1000.  # 50 s
+test_time = 20. * 1000.
 
 # save results in...
 results_folder = f'results/run_{simID}/'
@@ -38,14 +38,12 @@ weights = PopMonitor([res_output_proj], variables=['w'], sampling_rate=20.0)
 rates.start()
 weights.start()
 
-# con_monitor = ConMonitor([res_output_proj])
-# con_monitor.extract_weights()
-
 # init
 ann.disable_learning()
-ann.simulate(50.)
+ann.simulate(20.)
 
 # learning
+ann.set_time(0, net_id=0)  # to align target function with training and testing phase
 ann.enable_learning()
 ann.simulate(learning_time)
 
@@ -61,6 +59,3 @@ rates.save(results_folder)
 
 weights.stop()
 weights.save(results_folder)
-
-# con_monitor.extract_weights()
-# con_monitor.save_cons(results_folder)
