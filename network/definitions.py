@@ -90,15 +90,30 @@ target_neuron = ann.Neuron(
     """
 )
 
+input_neuron_dynamic = ann.Neuron(
+    parameters="""
+        tau_up = 1.0 : population
+        tau_down = 10.0 : population
+        baseline = 0.0
+        noise = 0.05 : population
+    """,
+    equations="""
+        base = baseline + noise * Uniform(-1.0,1.0): min=0.0
+        dr/dt = if (baseline>0.01): (base-r)/tau_up else: (base-r)/tau_down : min=0.0
+    """,
+    name = "Baseline Neuron",
+    description = "Time dynamic Neuron with baseline to be set. "
+)
+
 test_target_neuron = ann.Neuron(
     parameters="""
-    w1 = 0.7 : population
-    w2 = 0.05 : population
-    w3 = 0.4 : population
+    w1 = 0.6
+    w2 = 0.7
+    w3 = -0.2
 
-    f1 = 1/1000 : population
-    f2 = 1/200 : population
-    f3 = 1/500 : population
+    f1 = 1/1000
+    f2 = 1/500
+    f3 = 1/500
     
     phase_shift = -20.
     """,

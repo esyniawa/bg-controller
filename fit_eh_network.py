@@ -12,7 +12,7 @@ import ANNarchy as ann
 ann.setup(method='rk4', num_threads=1)
 
 # import from scripts
-from network.model import *
+from network.closed_loop_model import *
 from monitoring import PopMonitor
 
 
