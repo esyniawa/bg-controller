@@ -93,13 +93,13 @@ target_neuron = ann.Neuron(
 input_neuron_dynamic = ann.Neuron(
     parameters="""
         tau_up = 1.0 : population
-        tau_down = 10.0 : population
+        tau_down = 100.0 : population
         baseline = 0.0
         noise = 0.05 : population
     """,
     equations="""
         base = baseline + noise * Uniform(-1.0,1.0): min=0.0
-        dr/dt = if (baseline>0.01): (base-r)/tau_up else: (base-r)/tau_down : min=0.0
+        dr/dt = if (baseline>0.01): (base-r)/tau_up else: -r/tau_down : min=0.0
     """,
     name = "Baseline Neuron",
     description = "Time dynamic Neuron with baseline to be set. "
@@ -124,12 +124,12 @@ test_target_neuron = ann.Neuron(
 
 EH_learning_rule = ann.Synapse(
     parameters="""
-    eta_init = 0.0005
-    decay = 10000.
-    """,
+        eta_init = 0.0005
+        decay = 10000.
+        """,
     equations="""
-    learning_rate = eta_init / (1 + t/decay)
-    delta_w = learning_rate * (post.r - post.r_mean) * post.m * pre.r
-    w += delta_w
-    """
+        learning_rate = eta_init / (1 + t/decay)
+        delta_w = learning_rate * (post.r - post.r_mean) * post.m * pre.r
+        w += delta_w
+        """
 )

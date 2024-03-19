@@ -243,7 +243,8 @@ class PlanarArms:
         else:
             raise ValueError('Please specify if the arm is right or left!')
 
-    def change_angle(self, arm: str, new_thetas: np.ndarray, num_iterations: int = 100, radians: bool = False):
+    def change_angle(self, arm: str, new_thetas: np.ndarray, num_iterations: int = 100, radians: bool = False,
+                     break_at: None | int = None):
         """
         Change the joint angle of one arm to a new joint angle.
         """
@@ -252,7 +253,7 @@ class PlanarArms:
 
             trajectory = self.__cos_space(start=self.angles_right, stop=new_thetas, num=num_iterations)
 
-            for delta_theta in trajectory:
+            for j, delta_theta in enumerate(trajectory):
                 self.trajectory_gradient_right.append(delta_theta - self.trajectory_thetas_right[-1])
                 self.trajectory_gradient_left.append(np.array((0, 0)))
 
@@ -264,14 +265,17 @@ class PlanarArms:
                                                                              radians=True)[:, -1])
                 self.end_effector_left.append(self.end_effector_left[-1])
 
+                if break_at == j:
+                    break
+
             # set current angle to the new thetas
-            self.angles_right = new_thetas
+            self.angles_right = self.trajectory_thetas_right[-1]
 
         elif arm == 'left':
 
             trajectory = self.__cos_space(start=self.angles_left, stop=new_thetas, num=num_iterations)[:, -1]
 
-            for delta_theta in trajectory:
+            for j, delta_theta in enumerate(trajectory):
                 self.trajectory_gradient_left.append(delta_theta - self.trajectory_thetas_left[-1])
                 self.trajectory_gradient_right.append(np.array((0, 0)))
 
@@ -283,8 +287,11 @@ class PlanarArms:
                                                                             radians=True)[:, -1])
                 self.end_effector_right.append(self.end_effector_right[-1])
 
+                if break_at == j:
+                    break
+
             # set current angle to the new thetas
-            self.angles_left = new_thetas
+            self.angles_left = self.trajectory_thetas_left[-1]
 
         else:
             raise ValueError('Please specify if the arm is right or left!')
@@ -305,16 +312,20 @@ class PlanarArms:
 
             self.change_angle(arm=arm, new_thetas=new_thetas_to_position, num_iterations=num_iterations, radians=True)
 
-    def move_to_position_and_return_to_init(self, arm: str, end_effector: np.ndarray, num_iterations: int = 100):
+    def move_to_position_and_return_to_init(self, arm: str, end_effector: np.ndarray, num_iterations: int = 400,
+                                            t_wait: int = 5):
         """
-        Move to a certain coordinate within the peripersonal space.
+        Move to a certain coordinate within the peripersonal space and return to the initial position.
         """
+
+        num_iterations -= t_wait
         movement_time = int(num_iterations/2)
 
         if arm == 'right':
             new_thetas_to_position = self.inverse_kinematics(arm=arm, end_effector=end_effector,
                                                              starting_angles=self.angles_right, radians=True)
 
+            self.wait(t_wait)
             self.change_angle(arm=arm, new_thetas=new_thetas_to_position, num_iterations=movement_time, radians=True)
             self.change_angle(arm=arm, new_thetas=self.trajectory_thetas_right[0], num_iterations=movement_time, radians=True)
 
@@ -322,8 +333,58 @@ class PlanarArms:
             new_thetas_to_position = self.inverse_kinematics(arm=arm, end_effector=end_effector,
                                                              starting_angles=self.angles_left, radians=True)
 
+            self.wait(t_wait)
             self.change_angle(arm=arm, new_thetas=new_thetas_to_position, num_iterations=movement_time, radians=True)
             self.change_angle(arm=arm, new_thetas=self.trajectory_thetas_left[0], num_iterations=movement_time, radians=True)
+
+    def change_to_position_in_trajectory_return_to_init(self, arm: str, end_effectors: list | tuple,
+                                                        num_iterations: int = 400, t_wait: int = 5, break_at: int = 100):
+        """
+        Move to a certain coordinate within the peripersonal space, then change it in the middle of the trajectory to
+        another position and return to the initial position.
+        """
+
+        num_iterations -= t_wait
+
+        movement_time = int(num_iterations/2)
+        movement_time_after_break = int(movement_time - break_at)
+
+        if arm == 'right':
+            new_thetas_to_position_1 = self.inverse_kinematics(arm=arm, end_effector=end_effectors[0],
+                                                               starting_angles=self.angles_right, radians=True)
+
+            new_thetas_to_position_2 = self.inverse_kinematics(arm=arm, end_effector=end_effectors[1],
+                                                               starting_angles=self.angles_right, radians=True)
+
+            self.wait(t_wait)
+            # move pos 1
+            self.change_angle(arm=arm, new_thetas=new_thetas_to_position_1, num_iterations=movement_time, radians=True,
+                              break_at=break_at)
+            # change to pos 2
+            self.change_angle(arm=arm, new_thetas=new_thetas_to_position_2, num_iterations=movement_time_after_break,
+                              radians=True)
+
+            # return to init pos
+            self.change_angle(arm=arm, new_thetas=self.trajectory_thetas_right[0], num_iterations=movement_time,
+                              radians=True)
+
+        elif arm == 'left':
+            new_thetas_to_position_1 = self.inverse_kinematics(arm=arm, end_effector=end_effectors[0],
+                                                               starting_angles=self.angles_left, radians=True)
+
+            new_thetas_to_position_2 = self.inverse_kinematics(arm=arm, end_effector=end_effectors[1],
+                                                               starting_angles=self.angles_left, radians=True)
+
+            self.wait(t_wait)
+            # move pos 1
+            self.change_angle(arm=arm, new_thetas=new_thetas_to_position_1, num_iterations=movement_time, radians=True,
+                              break_at=break_at)
+            # change to pos 2
+            self.change_angle(arm=arm, new_thetas=new_thetas_to_position_2, num_iterations=movement_time_after_break,
+                              radians=True)
+            # return to init pos
+            self.change_angle(arm=arm, new_thetas=self.trajectory_thetas_left[0], num_iterations=movement_time,
+                              radians=True)
 
     def touch_arm(self,
                   resting_arm: str,
