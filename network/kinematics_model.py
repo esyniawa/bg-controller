@@ -38,9 +38,12 @@ input_reservoir_proj.connect_all_to_all(weights=ann.Uniform(-in_strength, in_str
 
 # output population
 output_motor_plan_1 = ann.Population(geometry=N_neurons_output, neuron=output_model, name='output_motor_plan_1')
+output_motor_plan_1.phi = 0.2
 output_motor_plan_2 = ann.Population(geometry=N_neurons_output, neuron=output_model, name='output_motor_plan_2')
+output_motor_plan_2.phi = 0.2
 
 output_trajectory = ann.Population(geometry=N_neurons_output, neuron=output_model, name='output_trajectory')
+output_trajectory.phi = 0.1
 
 # reservoir -> output
 res_output_motor_plan_1 = ann.Projection(pre=reservoir, post=output_motor_plan_1,

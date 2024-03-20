@@ -34,20 +34,20 @@ class PopMonitor(object):
         for monitor in self.monitors:
             monitor.resume()
 
-    def get(self):
+    def get(self, delete: bool = True):
         res = {}
 
         for i, monitor in enumerate(self.monitors):
-            res[self.variables[i] + '_' + monitor.object.name] = monitor.get(self.variables[i])
+            res[self.variables[i] + '_' + monitor.object.name] = monitor.get(self.variables[i], keep=not delete)
 
         return res
 
-    def save(self, folder):
+    def save(self, folder, delete: bool = True):
         if not path.exists(folder):
             makedirs(folder)
 
         for i, monitor in enumerate(self.monitors):
-            rec = monitor.get(self.variables[i])
+            rec = monitor.get(self.variables[i], keep=not delete)
             np.save(folder + self.variables[i] + '_' + monitor.object.name, rec)
 
     def load(self, folder):

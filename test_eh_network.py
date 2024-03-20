@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from network.closed_loop_model import *
 from monitoring import PopMonitor, ConMonitor
 
-learning_time = 30. * 1000.  # 50 s
+learning_time = 50. * 1000.  # 50 s
 test_time = 5. * 1000.
 
 # save results in...
@@ -52,7 +52,7 @@ ann.simulate(learning_time)
 # testing condition
 ann.set_time(0, net_id=0)
 ann.disable_learning()
-output_pop.test = 1
+output_pop.test = 0
 
 ann.simulate(test_time)
 
@@ -68,7 +68,7 @@ monitors = rates.load(results_folder)
 
 res_output = monitors['r_output_pop']
 res_target = monitors['r_target_pop']
-res_output_noiseless = monitors['r_output_pop'][:int(learning_time)] - monitors['noise_output_pop'][:int(learning_time)]
+res_output_noiseless = monitors['r_output_pop'] - monitors['noise_output_pop']
 ax.plot(res_output, c="b", alpha=0.2)
 ax.plot(res_output_noiseless, c="b")
 ax.plot(res_target, c="r", alpha=0.4)
